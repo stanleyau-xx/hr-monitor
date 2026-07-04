@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:background="@drawable/overlay_background"
+    android:paddingHorizontal="14dp"
+    android:paddingVertical="8dp"
+    android:gravity="center_vertical">
+
+    <ImageView
+        android:id="@+id/ivHeart"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:src="@drawable/ic_heart"
+        android:contentDescription="@string/heart_icon" />
+
+    <TextView
+        android:id="@+id/tvOverlayBpm"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="--"
+        android:textColor="@color/white"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_marginStart="6dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text=" bpm"
+        android:textColor="#AAFFFFFF"
+        android:textSize="12sp" />
+
+</LinearLayout>

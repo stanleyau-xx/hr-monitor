@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">HR Monitor</string>
+    <string name="app_title">❤️ HR Monitor</string>
+    <string name="stopped">Stopped</string>
+    <string name="start_monitoring">Start Monitoring</string>
+    <string name="stop_monitoring">Stop Monitoring</string>
+    <string name="heart_icon">Heart icon</string>
+    <string name="instructions">How to use:\n\n1. Make sure your heart rate strap is paired\n   (Garmin Connect, etc.)\n\n2. Wear the strap &amp; wet the electrodes\n\n3. Tap "Start Monitoring"\n\n4. Go to YouTube — the overlay appears\n   in the top-right corner\n\nTips:\n\u2022 Wet electrodes before wearing\n\u2022 Close other apps using the strap\n\u2022 Drag the overlay to move it\n\u2022 Tap the notification Stop to end</string>
+</resources>
