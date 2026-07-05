@@ -5,9 +5,11 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.provider.Settings
 import android.widget.Button
+import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -19,6 +21,19 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvStatus: TextView
     private lateinit var tvBpm: TextView
     private lateinit var btnToggle: Button
+    private lateinit var seekBarSize: SeekBar
+    private lateinit var tvSizePreview: TextView
+
+    private lateinit var prefs: SharedPreferences
+
+    companion object {
+        const val PREFS_NAME = "hr_monitor_prefs"
+        const val KEY_OVERLAY_SIZE = "overlay_text_size"
+        const val DEFAULT_SIZE_SP = 20
+        // SeekBar range: 0..36 maps to 12sp..48sp
+        const val SIZE_MIN_SP = 12
+        const val SIZE_MAX_SP = 48
+    }
 
     private val requiredPermissions: Array<String>
         get() {
@@ -59,9 +74,33 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+
         tvStatus = findViewById(R.id.tvStatus)
         tvBpm = findViewById(R.id.tvBpm)
         btnToggle = findViewById(R.id.btnToggle)
+        seekBarSize = findViewById(R.id.seekBarSize)
+        tvSizePreview = findViewById(R.id.tvSizePreview)
+
+        // Load saved size and apply
+        val savedSize = prefs.getInt(KEY_OVERLAY_SIZE, DEFAULT_SIZE_SP)
+        HeartRateState.overlayTextSize = savedSize
+        seekBarSize.progress = savedSize - SIZE_MIN_SP
+        updateSizePreview(savedSize)
+
+        seekBarSize.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                val sizeSp = progress + SIZE_MIN_SP
+                updateSizePreview(sizeSp)
+                if (fromUser) {
+                    HeartRateState.overlayTextSize = sizeSp
+                    prefs.edit().putInt(KEY_OVERLAY_SIZE, sizeSp).apply()
+                    HeartRateState.onSizeChanged?.invoke(sizeSp)
+                }
+            }
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        })
 
         btnToggle.setOnClickListener {
             if (HeartRateState.isRunning) {
@@ -144,5 +183,9 @@ class MainActivity : AppCompatActivity() {
         startService(serviceIntent)
         HeartRateState.isRunning = false
         updateUI()
+    }
+
+    private fun updateSizePreview(sizeSp: Int) {
+        tvSizePreview.textSize = sizeSp.toFloat()
     }
 }

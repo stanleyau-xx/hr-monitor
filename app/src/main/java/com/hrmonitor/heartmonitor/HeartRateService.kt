@@ -51,6 +51,10 @@ class HeartRateService : Service() {
         const val CHANNEL_ID = "hr_channel"
         const val NOTIFICATION_ID = 1
         const val ACTION_STOP = "com.hrmonitor.ACTION_STOP"
+
+        private const val PREFS_NAME = "hr_monitor_prefs"
+        private const val KEY_OVERLAY_SIZE = "overlay_text_size"
+        private const val DEFAULT_SIZE_SP = 20
     }
 
     // ── BLE ──
@@ -63,6 +67,8 @@ class HeartRateService : Service() {
     private lateinit var windowManager: WindowManager
     private var overlayView: View? = null
     private var tvOverlayBpm: TextView? = null
+    private var tvOverlayLabel: TextView? = null
+    private var ivHeart: android.widget.ImageView? = null
 
     // ═══════════════════════════════════════════════════
     // BLE Scan Callback
@@ -283,6 +289,19 @@ class HeartRateService : Service() {
 
         overlayView = LayoutInflater.from(this).inflate(R.layout.overlay_heart_rate, null)
         tvOverlayBpm = overlayView?.findViewById(R.id.tvOverlayBpm)
+        tvOverlayLabel = overlayView?.findViewById(R.id.tvOverlayLabel)
+        ivHeart = overlayView?.findViewById(R.id.ivHeart)
+
+        // Read saved size from SharedPreferences
+        val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+        val savedSize = prefs.getInt(KEY_OVERLAY_SIZE, DEFAULT_SIZE_SP)
+        HeartRateState.overlayTextSize = savedSize
+        applyOverlaySize(savedSize)
+
+        // Listen for live size changes from Activity
+        HeartRateState.onSizeChanged = { sizeSp ->
+            handler.post { applyOverlaySize(sizeSp) }
+        }
 
         val params = WindowManager.LayoutParams(
             WindowManager.LayoutParams.WRAP_CONTENT,
@@ -327,6 +346,21 @@ class HeartRateService : Service() {
 
     private fun updateOverlayBpm(bpm: Int) {
         tvOverlayBpm?.text = if (bpm > 0) "$bpm" else "--"
+    }
+
+    private fun applyOverlaySize(sizeSp: Int) {
+        val sizeFloat = sizeSp.toFloat()
+        tvOverlayBpm?.textSize = sizeFloat
+        // Scale label proportionally (55% of BPM size, min 10sp)
+        tvOverlayLabel?.textSize = (sizeFloat * 0.55f).coerceAtLeast(10f)
+        // Scale heart icon proportionally (dp, range 16..48)
+        val heartDp = (sizeFloat * 0.9f).toInt().coerceIn(16, 48)
+        ivHeart?.let { iv ->
+            val params = iv.layoutParams
+            params.width = dpToPx(heartDp)
+            params.height = dpToPx(heartDp)
+            iv.layoutParams = params
+        }
     }
 
     private fun removeOverlay() {
@@ -407,6 +441,7 @@ class HeartRateService : Service() {
         HeartRateState.isRunning = false
         HeartRateState.bpm = 0
         HeartRateState.status = "Stopped"
+        HeartRateState.onSizeChanged = null
 
         try {
             scanner?.stopScan(scanCallback)
